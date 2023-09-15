@@ -1,0 +1,93 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: serverless-remix-test
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+
+plugins:
+  - serverless-s3-sync
+  - serverless-apigateway-service-proxy
+  - serverless-dotenv-plugin
+  - serverless-esbuild
+
+custom:
+  s3Sync:
+    - bucketNameKey: AssetsBucketKey
+      localDir: public
+  apiGatewayServiceProxies:
+    - s3:
+        path: /_static/{path+}
+        method: get
+        action: GetObject
+        bucket:
+          Ref: AssetsBucket
+        key:
+          pathParam: path
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    target: 'node16'
+    platform: 'node'
+
+package:
+  patterns:
+    - "!.cache/**"
+    - "!public/**"
+    - "!app/**"
+    - "!server.js"
+    - "!yarn.lock"
+    - "!remix.*"
+    - "!package.json"
+    - "!package-lock.json"
+    - "!tsconfig.json"
+    - "!.eslintrc"
+    - "!README.md"
+    - "!node_modules/**"
+
+functions:
+  server:
+    handler: ./server/index.handler
+    memorySize: 1152
+    timeout: 30
+    events:
+      - http:
+          method: any
+          path: /{proxy+}
+      - http:
+          method: any
+          path: /
+
+resources:
+  Resources:
+    AssetsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: serverless-remix-test-assets-bucket
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          BlockPublicPolicy: false
+          IgnorePublicAcls: false
+          RestrictPublicBuckets: false
+
+  Outputs:
+    AssetsBucketKey:
+      Value:
+        Ref: AssetsBucket

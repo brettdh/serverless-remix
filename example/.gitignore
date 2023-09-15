@@ -1,0 +1,14 @@
+node_modules
+
+/build
+/dev
+/public/build
+/public/dev
+/server
+preferences.arc
+sam.json
+sam.yaml
+.env
+
+/cypress/screenshots
+/cypress/videos
